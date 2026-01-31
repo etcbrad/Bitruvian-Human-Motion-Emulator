@@ -1,0 +1,10 @@
+import React from 'react';
+
+// This file is being decommissioned as per the debuilding specification.
+// Its functionality has either been moved, is obsolete, or is a duplicate
+// of an active component.
+// Returning `null` effectively disables this component from rendering or being compiled,
+// resolving any associated import errors or conflicts.
+export const RotationWheelControl: React.FC = () => {
+  return null;
+};
