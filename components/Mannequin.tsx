@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Bone, type BoneProps, COLORS } from './Bone'; // Import COLORS from Bone
-import { ANATOMY_RAW_RELATIVE_TO_BASE_HEAD_UNIT, RIGGING, MANNEQUIN_LOCAL_FLOOR_Y } from '../constants';
-import { PartName, WalkingEnginePose, WalkingEngineProportions, WalkingEnginePivotOffsets, Vector2D } from '../types';
+import { Bone } from './Bone';
+import { ANATOMY_RAW_RELATIVE_TO_BASE_HEAD_UNIT, RIGGING } from '../constants';
+import { WalkingEnginePose, WalkingEngineProportions, WalkingEnginePivotOffsets } from '../types';
 
 interface MannequinProps {
   pose: WalkingEnginePose;
@@ -14,6 +14,8 @@ interface MannequinProps {
   onAnchorMouseDown: (boneKey: keyof WalkingEnginePivotOffsets, clientX: number) => void;
   draggingBoneKey: keyof WalkingEnginePivotOffsets | null;
   isPaused: boolean;
+  colorClass?: string;
+  skeletal?: boolean;
 }
 
 export const Mannequin: React.FC<MannequinProps> = ({
@@ -26,6 +28,8 @@ export const Mannequin: React.FC<MannequinProps> = ({
   onAnchorMouseDown,
   draggingBoneKey,
   isPaused,
+  colorClass = "fill-black",
+  skeletal = false,
 }) => {
   const getRotation = (partKey: keyof WalkingEnginePose, defaultVal: number = 0) => {
     const partRotation = pose[partKey] || defaultVal;
@@ -43,11 +47,11 @@ export const Mannequin: React.FC<MannequinProps> = ({
     return rawAnatomyValue * baseUnitH * propScale;
   };
 
-  const isPausedAndPivotsVisible = isPaused && showPivots;
+  const isPausedAndPivotsVisible = isPaused && showPivots && !skeletal;
 
   return (
     <g 
-      className="mannequin-root fill-black" 
+      className={`mannequin-root ${skeletal ? '' : colorClass}`} 
     >
       {/* Root circle for visual center, but no interaction */}
       {showPivots && (
@@ -64,7 +68,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
         drawsUpwards 
         showPivots={showPivots} 
         visible={true} 
-        colorClass="fill-black"
         showLabel={showLabels}
         label="Waist"
         boneKey="torso" // Using torso as key for waist bone for pivot offset (proximal)
@@ -72,6 +75,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
         onAnchorMouseDown={onAnchorMouseDown}
         isBeingDragged={draggingBoneKey === 'torso'}
         isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+        skeletal={skeletal}
       >
         <Bone 
           rotation={getRotation('torso')} 
@@ -82,7 +86,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
           showPivots={showPivots} 
           visible={true} 
           offset={undefined}
-          colorClass="fill-black"
           showLabel={showLabels}
           label="Torso"
           boneKey="torso" 
@@ -90,6 +93,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
           onAnchorMouseDown={onAnchorMouseDown}
           isBeingDragged={draggingBoneKey === 'torso'}
           isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+          skeletal={skeletal}
         >
           <Bone 
             rotation={getRotation('collar')} 
@@ -100,7 +104,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
             showPivots={showPivots} 
             visible={true} 
             offset={RIGGING.COLLAR_OFFSET_Y !== 0 ? {x: 0, y: RIGGING.COLLAR_OFFSET_Y * baseUnitH} : undefined}
-            colorClass="fill-black"
             showLabel={showLabels}
             label="Collar"
             boneKey="collar" // The collar itself
@@ -108,6 +111,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
             onAnchorMouseDown={onAnchorMouseDown}
             isBeingDragged={draggingBoneKey === 'collar'}
             isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+            skeletal={skeletal}
           >
             {/* HEAD */}
             <Bone 
@@ -119,7 +123,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
               showPivots={showPivots} 
               visible={true} 
               offset={{x: 0, y: -ANATOMY_RAW_RELATIVE_TO_BASE_HEAD_UNIT.HEAD_NECK_GAP_OFFSET * baseUnitH}}
-              colorClass="fill-black"
               showLabel={showLabels}
               label="Head"
               boneKey="neck" // Head pivots at neck
@@ -127,6 +130,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
               onAnchorMouseDown={onAnchorMouseDown}
               isBeingDragged={draggingBoneKey === 'neck'}
               isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+              skeletal={skeletal}
             />
             
             {/* RIGHT ARM */}
@@ -138,7 +142,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
                 variant="deltoid-shape" 
                 showPivots={showPivots} 
                 visible={true} 
-                colorClass="fill-black"
                 showLabel={showLabels}
                 label="R.Bicep"
                 boneKey="r_shoulder"
@@ -146,6 +149,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
                 onAnchorMouseDown={onAnchorMouseDown}
                 isBeingDragged={draggingBoneKey === 'r_shoulder'}
                 isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+                skeletal={skeletal}
               >
                 <Bone 
                   rotation={getRotation('r_elbow')} 
@@ -154,7 +158,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
                   variant="limb-tapered" 
                   showPivots={showPivots} 
                   visible={true} 
-                  colorClass="fill-black"
                   showLabel={showLabels}
                   label="R.Forearm"
                   boneKey="r_elbow"
@@ -162,6 +165,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
                   onAnchorMouseDown={onAnchorMouseDown}
                   isBeingDragged={draggingBoneKey === 'r_elbow'}
                   isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+                  skeletal={skeletal}
                 >
                   <Bone 
                     rotation={getRotation('r_hand')} 
@@ -170,7 +174,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
                     variant="hand-foot-arrowhead-shape" 
                     showPivots={showPivots} 
                     visible={true} 
-                    colorClass="fill-black"
                     showLabel={showLabels}
                     label="R.Hand"
                     boneKey="r_hand"
@@ -178,6 +181,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
                     onAnchorMouseDown={onAnchorMouseDown}
                     isBeingDragged={draggingBoneKey === 'r_hand'}
                     isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+                    skeletal={skeletal}
                   />
                 </Bone>
               </Bone>
@@ -192,7 +196,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
                 variant="deltoid-shape" 
                 showPivots={showPivots} 
                 visible={true} 
-                colorClass="fill-black"
                 showLabel={showLabels}
                 label="L.Bicep"
                 boneKey="l_shoulder"
@@ -200,6 +203,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
                 onAnchorMouseDown={onAnchorMouseDown}
                 isBeingDragged={draggingBoneKey === 'l_shoulder'}
                 isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+                skeletal={skeletal}
               >
                 <Bone 
                   rotation={getRotation('l_elbow')} 
@@ -209,7 +213,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
                   variant="limb-tapered" 
                   showPivots={showPivots} 
                   visible={true} 
-                  colorClass="fill-black"
                   showLabel={showLabels}
                   label="L.Forearm"
                   boneKey="l_elbow"
@@ -217,6 +220,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
                   onAnchorMouseDown={onAnchorMouseDown}
                   isBeingDragged={draggingBoneKey === 'l_elbow'}
                   isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+                  skeletal={skeletal}
                 >
                   <Bone 
                     rotation={getRotation('l_hand')} 
@@ -225,7 +229,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
                     variant="hand-foot-arrowhead-shape" 
                     showPivots={showPivots} 
                     visible={true} 
-                    colorClass="fill-black"
                     showLabel={showLabels}
                     label="L.Hand"
                     boneKey="l_hand"
@@ -233,6 +236,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
                     onAnchorMouseDown={onAnchorMouseDown}
                     isBeingDragged={draggingBoneKey === 'l_hand'}
                     isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+                    skeletal={skeletal}
                   />
                 </Bone>
               </Bone>
@@ -250,7 +254,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
           variant="limb-tapered" 
           showPivots={showPivots} 
           visible={true} 
-          colorClass="fill-black"
           showLabel={showLabels}
           label="L.Thigh"
           boneKey="l_hip"
@@ -258,6 +261,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
           onAnchorMouseDown={onAnchorMouseDown}
           isBeingDragged={draggingBoneKey === 'l_hip'}
           isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+          skeletal={skeletal}
         >
           <Bone 
             rotation={getRotation('l_knee')} 
@@ -266,7 +270,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
             variant="limb-tapered" 
             showPivots={showPivots} 
             visible={true} 
-            colorClass="fill-black"
             showLabel={showLabels}
             label="L.Calf"
             boneKey="l_knee"
@@ -274,6 +277,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
             onAnchorMouseDown={onAnchorMouseDown}
             isBeingDragged={draggingBoneKey === 'l_knee'}
             isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+            skeletal={skeletal}
           >
             <Bone 
               rotation={getRotation('l_foot')} 
@@ -282,7 +286,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
               variant="foot-block-shape"
               showPivots={showPivots} 
               visible={true} 
-              colorClass="fill-black"
               showLabel={showLabels}
               label="L.Foot"
               boneKey="l_foot"
@@ -290,6 +293,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
               onAnchorMouseDown={onAnchorMouseDown}
               isBeingDragged={draggingBoneKey === 'l_foot'}
               isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+              skeletal={skeletal}
             >
               <Bone 
                 rotation={getRotation('l_toe')} 
@@ -298,7 +302,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
                 variant="hand-foot-arrowhead-shape" 
                 showPivots={showPivots} 
                 visible={true} 
-                colorClass="fill-black"
                 showLabel={showLabels}
                 label="L.Toe"
                 boneKey="l_toe"
@@ -306,6 +309,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
                 onAnchorMouseDown={onAnchorMouseDown}
                 isBeingDragged={draggingBoneKey === 'l_toe'}
                 isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+                skeletal={skeletal}
               />
             </Bone>
           </Bone>
@@ -320,7 +324,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
           variant="limb-tapered" 
           showPivots={showPivots} 
           visible={true} 
-          colorClass="fill-black"
           showLabel={showLabels}
           label="R.Thigh"
           boneKey="r_hip"
@@ -328,6 +331,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
           onAnchorMouseDown={onAnchorMouseDown}
           isBeingDragged={draggingBoneKey === 'r_hip'}
           isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+          skeletal={skeletal}
         >
           <Bone 
             rotation={getRotation('r_knee')} 
@@ -336,7 +340,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
             variant="limb-tapered" 
             showPivots={showPivots} 
             visible={true} 
-            colorClass="fill-black"
             showLabel={showLabels}
             label="R.Calf"
             boneKey="r_knee"
@@ -344,6 +347,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
             onAnchorMouseDown={onAnchorMouseDown}
             isBeingDragged={draggingBoneKey === 'r_knee'}
             isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+            skeletal={skeletal}
           >
             <Bone 
               rotation={getRotation('r_foot')} 
@@ -352,7 +356,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
               variant="foot-block-shape"
               showPivots={showPivots} 
               visible={true} 
-              colorClass="fill-black"
               showLabel={showLabels}
               label="R.Foot"
               boneKey="r_foot"
@@ -360,6 +363,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
               onAnchorMouseDown={onAnchorMouseDown}
               isBeingDragged={draggingBoneKey === 'r_foot'}
               isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+              skeletal={skeletal}
             >
               <Bone 
                 rotation={getRotation('r_toe')} 
@@ -368,7 +372,6 @@ export const Mannequin: React.FC<MannequinProps> = ({
                 variant="hand-foot-arrowhead-shape" 
                 showPivots={showPivots} 
                 visible={true} 
-                colorClass="fill-black"
                 showLabel={showLabels}
                 label="R.Toe"
                 boneKey="r_toe"
@@ -376,6 +379,7 @@ export const Mannequin: React.FC<MannequinProps> = ({
                 onAnchorMouseDown={onAnchorMouseDown}
                 isBeingDragged={draggingBoneKey === 'r_toe'}
                 isPausedAndPivotsVisible={isPausedAndPivotsVisible}
+                skeletal={skeletal}
               />
             </Bone>
           </Bone>

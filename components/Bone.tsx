@@ -22,6 +22,7 @@ export interface BoneProps {
   onAnchorMouseDown?: (boneKey: keyof WalkingEnginePivotOffsets, clientX: number) => void;
   isBeingDragged?: boolean;
   isPausedAndPivotsVisible?: boolean;
+  skeletal?: boolean;
 }
 
 export const COLORS = {
@@ -68,6 +69,7 @@ export const Bone: React.FC<BoneProps> = ({
   onAnchorMouseDown,
   isBeingDragged = false,
   isPausedAndPivotsVisible = false,
+  skeletal = false,
 }) => {
 
   const getBonePath = (boneLength: number, boneWidth: number, variant: string, drawsUpwards: boolean): string => {
@@ -137,8 +139,14 @@ export const Bone: React.FC<BoneProps> = ({
     ? (isBeingDragged ? 'cursor-grabbing' : 'cursor-grab')
     : 'cursor-default';
 
-  const boneStrokeColor = COLORS.RIDGE;
-  const boneStrokeWidth = 0.5;
+  const boneFill = skeletal ? 'none' : 'currentColor';
+  const boneStrokeColor = skeletal ? 'white' : COLORS.RIDGE;
+  const boneStrokeWidth = skeletal ? 0.75 : 0.5;
+  const anchorFill = skeletal ? 'white' : COLORS.ANCHOR_RED;
+  const anchorStrokeWidth = skeletal ? 0 : 1;
+  const anchorRadius = skeletal ? 4 : 5;
+  const skeletalLineStroke = skeletal ? 'white' : 'rgba(150, 150, 150, 0.15)';
+  const skeletalLineOpacity = skeletal ? 0.6 : 0.5;
 
   return (
     <g transform={transform} className={colorClass}> {/* Apply fill class directly to the group */}
@@ -146,14 +154,14 @@ export const Bone: React.FC<BoneProps> = ({
         <React.Fragment>
           <path
             d={getBonePath(length, width, variant, drawsUpwards)}
-            fill="currentColor" // Use currentColor from the group's class
-            stroke={boneStrokeColor} // Dynamic stroke for highlighting
-            strokeWidth={boneStrokeWidth} // Dynamic stroke width for highlighting
+            fill={boneFill}
+            stroke={boneStrokeColor}
+            strokeWidth={boneStrokeWidth}
             paintOrder="stroke"
           />
           {/* Overlay line for axis */}
           {showPivots && (
-            <line x1="0" y1="0" x2="0" y2={visualEndPoint} stroke="rgba(150, 150, 150, 0.15)" strokeWidth="1" opacity={0.5} strokeLinecap="round" />
+            <line x1="0" y1="0" x2="0" y2={visualEndPoint} stroke={skeletalLineStroke} strokeWidth="0.5" opacity={skeletalLineOpacity} strokeLinecap="round" />
           )}
            {showLabel && label && (
             <text x={width / 2 + 5} y={visualEndPoint / 2} 
@@ -170,10 +178,10 @@ export const Bone: React.FC<BoneProps> = ({
       {/* Anchor (red dot) at the start of the bone, always visible if showPivots */}
       {showPivots && visible && boneKey && onAnchorMouseDown && (
         <circle 
-          cx="0" cy="0" r={5} 
-          fill={COLORS.ANCHOR_RED} 
+          cx="0" cy="0" r={anchorRadius} 
+          fill={anchorFill} 
           stroke="white" // Added white stroke for emphasis
-          strokeWidth="1" // Added stroke width
+          strokeWidth={anchorStrokeWidth}
           className={`drop-shadow-md ${cursorStyle}`} 
           data-no-export="true"
           onMouseDown={(e) => isPausedAndPivotsVisible && onAnchorMouseDown(boneKey, e.clientX)}

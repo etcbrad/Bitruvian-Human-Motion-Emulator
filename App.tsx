@@ -35,12 +35,30 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children
   );
 };
 
-// Define gait presets for procedural mode
-const gaitPresets: WalkingEngineGait[] = [
-  { intensity: 0.8, stride: 0.7, lean: 0.1, frequency: 1.2, gravity: 0.6, bounce: 0.2, bends: 0.8, head_spin: 0.0, mood: 0.8, ground_drag: 0.3, foot_angle_on_ground: 0, arm_swing: 0.6, elbow_bend: 0.7, wrist_swing: 0.6, foot_roll: 0.6, toe_lift: 0.6, shin_tilt: 0.0, foot_slide: 0.2, kick_up_force: 0.4, hover_height: 0.1, waist_twist: 0.3, hip_sway: 0.4, toe_bend: 0.8 }, // Normal walk
-  { intensity: 1.0, stride: 0.8, lean: 0.05, frequency: 2.2, gravity: 0.3, bounce: 0.3, bends: 0.14, head_spin: 0.0, mood: 1.0, ground_drag: 0.1, foot_angle_on_ground: 0, arm_swing: 1.2, elbow_bend: 2.67, wrist_swing: 0.8, foot_roll: 0.8, toe_lift: 0.8, shin_tilt: 0.0, foot_slide: 0.1, kick_up_force: 0.9, hover_height: 0.2, waist_twist: 0.2, hip_sway: 0.1, toe_bend: 1.0 }, // "Tom Cruise" Run
+// --- REBUILT GAIT PRESETS ---
+// A cleaner, more foundational set of motion styles.
+const gaitPresets: { name: string, gait: WalkingEngineGait }[] = [
+  {
+    name: 'Walk',
+    gait: { intensity: 0.8, stride: 0.55, lean: 0.1, frequency: 1.2, gravity: 0.6, bounce: 0.1, bends: 1.0, head_spin: 0.0, mood: 0.8, ground_drag: 0.2, foot_angle_on_ground: 0, arm_swing: 0.6, elbow_bend: 0.7, wrist_swing: 0.6, foot_roll: 0.6, toe_lift: 0.8, shin_tilt: 0.0, foot_slide: 0.2, kick_up_force: 0.4, hover_height: 0.1, waist_twist: 0.3, hip_sway: 0.4, toe_bend: 0.8 },
+  },
+  {
+    name: 'Bouncy Walk',
+    gait: { intensity: 0.9, stride: 0.5, lean: -0.1, frequency: 1.5, gravity: 0.4, bounce: 0.8, bends: 0.8, head_spin: 0.0, mood: 0.9, ground_drag: 0.1, foot_angle_on_ground: 5, arm_swing: 0.8, elbow_bend: 0.6, wrist_swing: 0.7, foot_roll: 0.7, toe_lift: 0.7, shin_tilt: -0.1, foot_slide: 0.1, kick_up_force: 0.5, hover_height: 0.3, waist_twist: 0.4, hip_sway: 0.6, toe_bend: 0.7 },
+  },
+  {
+    name: 'Run',
+    gait: { intensity: 1.0, stride: 0.8, lean: 0.05, frequency: 2.2, gravity: 0.3, bounce: 0.3, bends: 0.14, head_spin: 0.0, mood: 1.0, ground_drag: 0.1, foot_angle_on_ground: 0, arm_swing: 1.2, elbow_bend: 0.8, wrist_swing: 0.8, foot_roll: 0.8, toe_lift: 0.8, shin_tilt: 0.0, foot_slide: 0.1, kick_up_force: 0.9, hover_height: 0.2, waist_twist: 0.2, hip_sway: 0.1, toe_bend: 1.0 },
+  },
+  {
+    name: 'Jog',
+    gait: { intensity: 0.9, stride: 0.6, lean: 0.1, frequency: 1.8, gravity: 0.5, bounce: 0.4, bends: 0.6, head_spin: 0.0, mood: 0.85, ground_drag: 0.15, foot_angle_on_ground: 0, arm_swing: 1.0, elbow_bend: 0.9, wrist_swing: 0.5, foot_roll: 0.7, toe_lift: 0.6, shin_tilt: 0.0, foot_slide: 0.1, kick_up_force: 0.6, hover_height: 0.15, waist_twist: 0.3, hip_sway: 0.2, toe_bend: 0.9 },
+  },
+  {
+    name: 'Scoot',
+    gait: { intensity: 0.7, stride: 0.2, lean: 0.2, frequency: 2.5, gravity: 0.7, bounce: 0.1, bends: 1.2, head_spin: 0.0, mood: 0.6, ground_drag: 0.6, foot_angle_on_ground: 10, arm_swing: 0.1, elbow_bend: 0.3, wrist_swing: 0.1, foot_roll: 0.3, toe_lift: 0.2, shin_tilt: 0.2, foot_slide: 0.8, kick_up_force: 0.1, hover_height: 0.0, waist_twist: 0.8, hip_sway: 1.0, toe_bend: 0.4 },
+  },
 ];
-const gaitPresetNames = ["Normal Walk", "Run"];
 
 
 // Helper function for foot planting IK
@@ -105,7 +123,6 @@ const App: React.FC = () => {
   const [showPivots, setShowPivots] = useState(false);
   const [showLabels, setShowLabels] = useState(true);
   const [bobblehead, setBobblehead] = useState(false);
-  const [isGroundedMode, setIsGroundedMode] = useState(false);
   const [isGlideMode, setIsGlideMode] = useState(false); // New state for glide mode
   const [isPaused, setIsPaused] = useState(false);
   const [targetFps, setTargetFps] = useState(60);
@@ -132,9 +149,9 @@ const App: React.FC = () => {
     neck: 0, collar: 0, torso: 0, l_shoulder: 90, r_shoulder: -90, l_elbow: 0, r_elbow: 0, l_hand: 0, r_hand: 0, l_hip: 0, r_hip: 0, l_knee: 0, r_knee: 0, l_foot: 0, r_foot: 0, l_toe: 0, r_toe: 0, stride_phase: 0, y_offset: 0, x_offset: 0,
   };
 
-  const [gait, setGait] = useState<WalkingEngineGait>(gaitPresets[0]);
+  const [gait, setGait] = useState<WalkingEngineGait>(gaitPresets[0].gait);
   const [activePresetIndex, setActivePresetIndex] = useState(0);
-  const targetGaitRef = useRef<WalkingEngineGait>(gaitPresets[0]);
+  const targetGaitRef = useRef<WalkingEngineGait>(gaitPresets[0].gait);
   const gaitRef = useRef(gait);
   useEffect(() => { gaitRef.current = gait; }, [gait]);
 
@@ -144,7 +161,7 @@ const App: React.FC = () => {
   });
 
   const [pivotOffsets, setPivotOffsets] = useState<WalkingEnginePivotOffsets>({
-    neck: 0, collar: 0, torso: 0, l_shoulder: 0, r_shoulder: 0, l_elbow: 0, r_elbow: 0, l_hand: 0, r_hand: 0, l_hip: 0, r_hip: 0, l_knee: 0, r_knee: 0, l_foot: -89, r_foot: -89, l_toe: 12, r_toe: 10
+    neck: 0, collar: 0, torso: 0, l_shoulder: 0, r_shoulder: 0, l_elbow: 0, r_elbow: 0, l_hand: 0, r_hand: 0, l_hip: 0, r_hip: 0, l_knee: 0, r_knee: 0, l_foot: 0, r_foot: 0, l_toe: 12, r_toe: 10
   });
 
   const headSpring = useRef({ pos: 0, vel: 0 });
@@ -180,6 +197,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     let frame: number;
+    const SMART_FPS_THRESHOLD = 24;
+
     const animate = (time: number) => {
       frame = requestAnimationFrame(animate);
       const fpsInterval = 1000 / targetFps;
@@ -217,7 +236,14 @@ const App: React.FC = () => {
       }
 
       const currentGait = gaitRef.current;
-      const p = (time * 0.005 * currentGait.frequency) % (Math.PI * 2);
+      let p = (time * 0.005 * currentGait.frequency) % (Math.PI * 2);
+      
+      if (targetFps < SMART_FPS_THRESHOLD) {
+        const timeForCycleMs = (2 * Math.PI) / (0.005 * currentGait.frequency);
+        const numSteps = Math.max(2, Math.round(timeForCycleMs / (1000 / targetFps)));
+        const phaseStep = (2 * Math.PI) / numSteps;
+        p = Math.round(p / phaseStep) * phaseStep;
+      }
       
       if (p < lastPhaseRef.current) {
         animationCycleCountRef.current += 1;
@@ -254,7 +280,9 @@ const App: React.FC = () => {
       const moodFactor = currentGait.mood;
       
       const moodTorso = (moodFactor - 0.5) * -40;
-      const torsoLeanTarget = (currentGait.lean * 35) + moodTorso + (Math.sin(p) * 8 * currentGait.intensity);
+      // Recalibrated lean: Use cosine to create a rocking motion for balance
+      const dynamicLean = Math.cos(p * 2) * 8 * currentGait.intensity; // Use p*2 for a quicker rock
+      const torsoLeanTarget = (currentGait.lean * 35) + moodTorso + dynamicLean;
       smoothedTorsoLeanRef.current = lerp(smoothedTorsoLeanRef.current, torsoLeanTarget, 0.1);
       const torsoLean = smoothedTorsoLeanRef.current;
       
@@ -266,7 +294,7 @@ const App: React.FC = () => {
       const waistSwayTarget = Math.cos(p * 2) * hipSwayMagnitude * 0.5;
       smoothedWaistSwayRef.current = lerp(smoothedWaistSwayRef.current, waistSwayTarget, 0.1);
       const waistSway = smoothedWaistSwayRef.current;
-      const bodySwayXTarget = Math.cos(p) * hipSwayMagnitude;
+      const bodySwayXTarget = Math.sin(p * 2) * hipSwayMagnitude * 0.5; // Use sin for smoother side-to-side
       smoothedBodySwayXRef.current = lerp(smoothedBodySwayXRef.current, bodySwayXTarget, 0.1);
       const bodySwayX = smoothedBodySwayXRef.current;
 
@@ -302,70 +330,87 @@ const App: React.FC = () => {
         r_knee = glideKneeBend - Math.abs(counterStride) * 20;
         l_foot = 0; r_foot = 0; l_toe = 0; r_toe = 0;
       } else {
-          const calculateLegAngles = (s: number, gait: WalkingEngineGait, phase: number) => {
-              const hipMult = (10 + (gait.stride * 35)) * (0.8 + gait.intensity * 0.4) * (0.5 + moodFactor);
-              let hip = s * hipMult;
-              let knee = 0, foot = 0, toe = 0;
-              const isGrounded = s < 0;
+        const calculateLegAngles = (s: number, gait: WalkingEngineGait, phase: number) => {
+            const hipMult = (10 + (gait.stride * 35)) * (0.8 + gait.intensity * 0.4) * (0.5 + moodFactor);
+            // When s is negative, it's a backswing. Cut this rotation in half.
+            const effectiveS = s < 0 ? s * 0.5 : s;
+            let hip = effectiveS * hipMult;
+            hip -= torsoLean * 0.2;
+            let knee = 0, foot = 0, toe = 0;
+        
+            const normalizedPhase = (phase + 2 * Math.PI) % (2 * Math.PI);
+            const isGrounded = normalizedPhase >= Math.PI;
+        
+            if (isGrounded) {
+                // STANCE PHASE
+                const stanceProgress = (normalizedPhase - Math.PI) / Math.PI;
+                
+                const downBend = 25 * (gait.gravity + gait.bends * 0.2);
+                const passingStraightness = 5;
+                if (stanceProgress < 0.3) {
+                    const t = stanceProgress / 0.3;
+                    knee = lerp(0, downBend, easeInOutQuint(t));
+                } else {
+                    const t = (stanceProgress - 0.3) / 0.7;
+                    knee = lerp(downBend, passingStraightness, t);
+                }
+                knee += gait.ground_drag * 15;
+        
+                const shinGlobalAngle = hip + knee;
+                const flatFootAngle = -shinGlobalAngle + gait.foot_angle_on_ground;
+        
+                const heelStrikeAngle = 30;
+                const toeOffAngle = -90 * (1 - gait.ground_drag * 0.4); // Dampen toe-off with ground drag
+        
+                if (stanceProgress < 0.1) {
+                    const t = stanceProgress / 0.1;
+                    foot = lerp(heelStrikeAngle, flatFootAngle, t);
+                    toe = lerp(heelStrikeAngle / 2, 0, t);
+                } else if (stanceProgress <= 0.7) {
+                    foot = flatFootAngle;
+                    toe = 0;
+                } else {
+                    const t = (stanceProgress - 0.7) / 0.3;
+                    const heelLiftAngle = lerp(0, toeOffAngle, t) * gait.foot_roll;
+                    foot = flatFootAngle + heelLiftAngle;
+                    toe = -heelLiftAngle * gait.toe_bend * 1.2;
+                }
+                
+                const slideProgress = Math.sin(stanceProgress * Math.PI);
+                const slideAmount = slideProgress * gait.foot_slide * 40 * (1 + gait.gravity * 0.5);
+                hip += slideAmount;
+                knee -= slideAmount * 0.5;
+        
+            } else { // SWING PHASE
+                const swingProgressLinear = normalizedPhase / Math.PI;
+                const swingArcHeight = Math.sin(normalizedPhase);
+                
+                const clearanceBend = (gait.stride + gait.intensity) * 35 * swingArcHeight;
+                const hoverLift = gait.hover_height * 40 * swingArcHeight;
+                
+                const dragFactor = Math.pow(1 - swingProgressLinear, 5); // Sharpened falloff for a quicker "tug"
+                const dragBend = dragFactor * 80 * gait.bends * (1 + gait.ground_drag * 0.5); // Re-balanced drag force
 
-              if (isGrounded) {
-                  const stancePhase = (phase % (2 * Math.PI));
-                  const stanceProgress = (stancePhase - Math.PI) / Math.PI; // 0 (front) to 1 (back)
-                  
-                  knee = (5 + gait.ground_drag * 25) + (gait.gravity * 15);
+                // Controlled hyperextension "snap" to kick the leg forward from the knee
+                const kickForce = -Math.pow(1 - swingProgressLinear, 4) * gait.kick_up_force * 50; // Negative for extension, steep falloff
 
-                  // --- Refined Ankle/Foot Reaction Logic ---
-                  const shinGlobalAngle = hip + knee;
-                  const flatFootAngle = -shinGlobalAngle;
-                  
-                  const heelStrikeAngle = 15;
-                  const toeOffAngle = -55;
-
-                  if (stanceProgress < 0.15) { // Heel Strike
-                      const t = stanceProgress / 0.15;
-                      foot = lerp(heelStrikeAngle, flatFootAngle, t);
-                      toe = lerp(heelStrikeAngle / 2, 0, t);
-                  } else if (stanceProgress <= 0.7) { // Mid-stance
-                      foot = flatFootAngle;
-                      toe = 0;
-                  } else { // Toe-off
-                      const t = (stanceProgress - 0.7) / 0.3;
-                      const heelLiftAngle = lerp(0, toeOffAngle, t) * gait.foot_roll;
-                      foot = flatFootAngle + heelLiftAngle;
-                      toe = -heelLiftAngle * gait.toe_bend;
-                  }
-                  
-                  const slideProgress = Math.sin(stanceProgress * Math.PI);
-                  const slideAmount = slideProgress * gait.foot_slide * 40 * (1 + gait.gravity * 0.5);
-                  hip += slideAmount;
-                  knee -= slideAmount * 0.5;
-
-              } else {
-                  const swingProgress = s;
-                  const swingArc = Math.sin(swingProgress * Math.PI);
-                  
-                  const clearanceBend = (gait.stride + gait.intensity) * 30 * swingArc;
-                  const hoverLift = gait.hover_height * 45 * swingArc;
-                  knee = clearanceBend + hoverLift;
-
-                  foot = swingArc * 30 * gait.gravity;
-                  toe = foot * 0.5;
-
-                  const kickPhase = s / 0.5;
-                  if (kickPhase <= 1) {
-                      const kickCurve = Math.sin(kickPhase * Math.PI);
-                      knee += kickCurve * gait.kick_up_force * 60;
-                      foot -= kickCurve * gait.kick_up_force * 40;
-                  }
-              }
-
-              const shinTiltAmplitude = 25 * gait.shin_tilt * (0.5 + gait.intensity);
-              const shinTilt = Math.cos(phase + (Math.PI / 4)) * shinTiltAmplitude;
-              knee += shinTilt;
-              
-              return { hip, knee, foot, toe };
-          };
-
+                knee = clearanceBend + hoverLift + dragBend + kickForce;
+                
+                const footDragAngle = Math.cos(swingProgressLinear * Math.PI) * -45;
+                const footFlickAngle = swingArcHeight * gait.toe_lift * 60;
+                foot = footDragAngle + footFlickAngle;
+        
+                const toeFlick = swingArcHeight * 40 * gait.toe_lift;
+                toe = foot * 0.5 + toeFlick;
+            }
+        
+            const shinTiltAmplitude = 25 * gait.shin_tilt * (0.5 + gait.intensity);
+            const shinTilt = Math.cos(phase + (Math.PI / 4)) * shinTiltAmplitude;
+            knee += shinTilt;
+            
+            return { hip, knee, foot, toe };
+        };
+        
           const lLeg = calculateLegAngles(strideVal, currentGait, p);
           const rLeg = calculateLegAngles(counterStride, currentGait, p + Math.PI);
           l_hip = lLeg.hip; l_knee = lLeg.knee; l_foot = lLeg.foot; l_toe = lLeg.toe;
@@ -376,30 +421,20 @@ const App: React.FC = () => {
 
           const lowestPointY = Math.max(lLegHeight, rLegHeight);
           const floorY = MANNEQUIN_LOCAL_FLOOR_Y * H;
-          const floorBuffer = 5; 
+          
+          bobbing = floorY - lowestPointY;
+          const bounceAmount = -Math.cos(p * 2) * 5 * currentGait.bounce;
+          bobbing += bounceAmount;
 
-          if (lowestPointY > floorY - floorBuffer) {
-              bobbing = floorY - lowestPointY;
-          } else {
-              const verticalOscillation = Math.abs(Math.cos(p)) * (2 * currentGait.bounce * (1 - currentGait.gravity * 0.7));
-              const gravityPull = currentGait.gravity * 5;
-              const weightDip = (1 - moodFactor) * 5 + (currentGait.ground_drag * 8);
-              bobbing = verticalOscillation + gravityPull + weightDip;
-          }
-
-          const isLLegPlanted = Math.abs((lLegHeight + bobbing) - floorY) < floorBuffer;
-          const isRLegPlanted = Math.abs((rLegHeight + bobbing) - floorY) < floorBuffer;
+          const isLLegPlanted = Math.abs((lLegHeight + bobbing) - floorY) < 10;
+          const isRLegPlanted = Math.abs((rLegHeight + bobbing) - floorY) < 10;
           const gravityCompression = currentGait.gravity * 12 * currentGait.intensity;
 
-          if (isLLegPlanted) {
-              l_knee += gravityCompression;
-          }
-          if (isRLegPlanted) {
-              r_knee += gravityCompression;
-          }
+          if (isLLegPlanted) l_knee += gravityCompression;
+          if (isRLegPlanted) r_knee += gravityCompression;
       }
 
-      smoothedBobbingRef.current = lerp(smoothedBobbingRef.current, bobbing, 0.1);
+      smoothedBobbingRef.current = lerp(smoothedBobbingRef.current, bobbing, 0.2);
 
       setPose(prev => ({
         ...prev,
@@ -423,7 +458,7 @@ const App: React.FC = () => {
     lastFrameTimeRef.current = performance.now();
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
-  }, [props, bobblehead, isGroundedMode, isGlideMode, isPaused, isRecording, targetFps, recordFrameCount]);
+  }, [props, bobblehead, isGlideMode, isPaused, isRecording, targetFps, recordFrameCount]);
 
   const drawSvgToCanvas = useCallback(() => {
     const svg = svgRef.current;
@@ -553,12 +588,45 @@ const App: React.FC = () => {
   }, [isRecording, isPaused, targetFps, drawSvgToCanvas]);
   
   const handleSavePose = useCallback(() => { const poseData = { proportions: props, pivotOffsets, gait }; const blob = new Blob([JSON.stringify(poseData, null, 2)], { type: 'application/json' }); saveAs(blob, 'bitruvius-pose.json'); }, [props, pivotOffsets, gait]);
-  const formatKeyLabel = (key: string) => { if (key.startsWith('l_')) return `L. ${key.slice(2).replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`; if (key.startsWith('r_')) return `R. ${key.slice(2).replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`; return key.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '); };
+  // FIX: The original one-liner for this function was extremely long and likely causing a cryptic parsing error.
+  // Refactored for readability and to resolve the issue. The logic remains identical.
+  const formatKeyLabel = (key: string) => {
+    const capitalizeAndFormat = (str: string) => {
+      return str.replace(/_/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    };
+
+    if (key.startsWith('l_')) return `L. ${capitalizeAndFormat(key.slice(2))}`;
+    if (key.startsWith('r_')) return `R. ${capitalizeAndFormat(key.slice(2))}`;
+    return capitalizeAndFormat(key);
+  };
   useEffect(() => { const timer = setTimeout(() => setShowSplash(false), 2000); return () => clearTimeout(timer); }, []);
 
   return (
     <div className="flex h-full w-full bg-paper font-mono text-ink overflow-hidden select-none">
       <div className="w-80 border-r border-ridge bg-mono-darker p-4 flex flex-col gap-4 custom-scrollbar overflow-y-auto">
+        
+        <div className="bg-black rounded-md p-2 aspect-square relative shadow-inner">
+            <svg viewBox="-750 -1250 1500 1500" className="w-full h-full">
+                <g transform={`translate(${pose.x_offset || 0}, ${mannequinBaseYTranslation + pose.y_offset})`}>
+                    <Mannequin 
+                        pose={pose} 
+                        pivotOffsets={pivotOffsets} 
+                        props={props} 
+                        showPivots={true} 
+                        showLabels={false} 
+                        baseUnitH={H} 
+                        onAnchorMouseDown={() => {}} 
+                        draggingBoneKey={null} 
+                        isPaused={isPaused}
+                        skeletal={true}
+                    />
+                </g>
+            </svg>
+        </div>
+
         <h1 className="text-xl font-archaic tracking-widest border-b border-ridge pb-2 text-ink uppercase italic">Bitruvius.Physics</h1>
         
         <div className="flex flex-col gap-2">
@@ -587,17 +655,16 @@ const App: React.FC = () => {
                 <h2 className="text-[10px] text-selection font-bold tracking-[0.2em] uppercase">Motion Style</h2>
                 <div className="flex gap-2 flex-wrap">
                 <button onClick={() => setBobblehead(!bobblehead)} className={`text-[8px] px-2 py-0.5 border rounded transition-colors font-bold ${bobblehead ? 'bg-selection text-paper border-selection' : 'border-mono-mid text-mono-mid opacity-60'}`}>BOBBLE: {bobblehead ? 'ON' : 'OFF'}</button>
-                <button onClick={() => setIsGroundedMode(!isGroundedMode)} className={`text-[8px] px-2 py-0.5 border rounded transition-colors font-bold ${isGroundedMode ? 'bg-selection text-paper border-selection' : 'border-mono-mid text-mono-mid opacity-60'}`}>GROUNDED: {isGroundedMode ? 'ON' : 'OFF'}</button>
                 <button onClick={() => setIsGlideMode(!isGlideMode)} className={`text-[8px] px-2 py-0.5 border rounded transition-colors font-bold ${isGlideMode ? 'bg-selection text-paper border-selection' : 'border-mono-mid text-mono-mid opacity-60'}`}>GLIDE: {isGlideMode ? 'ON' : 'OFF'}</button>
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="grid grid-cols-1 gap-2 mb-4">
                 {gaitPresets.map((preset, index) => (
                     <button
-                        key={index}
+                        key={preset.name}
                         onClick={() => {
-                            targetGaitRef.current = preset;
-                            setGait(preset); // Also update live gait for sliders
+                            targetGaitRef.current = preset.gait;
+                            setGait(preset.gait); // Also update live gait for sliders
                             setActivePresetIndex(index);
                         }}
                         className={`text-[9px] px-3 py-1 border transition-all font-bold ${
@@ -606,7 +673,7 @@ const App: React.FC = () => {
                                 : 'border-mono-mid text-mono-mid opacity-60 hover:bg-ridge'
                         }`}
                     >
-                        {gaitPresetNames[index]}
+                        {preset.name}
                     </button>
                 ))}
             </div>
@@ -699,7 +766,7 @@ const App: React.FC = () => {
 
           <SystemGuides floorY={visualFloorY} baseUnitH={H} />
           <g transform={`translate(${pose.x_offset || 0}, ${mannequinBaseYTranslation + pose.y_offset})`}>
-            <Mannequin pose={pose} pivotOffsets={pivotOffsets} props={props} showPivots={showPivots} showLabels={showLabels} baseUnitH={H} onAnchorMouseDown={onAnchorMouseDown} draggingBoneKey={draggingBoneKey} isPaused={isPaused} />
+            <Mannequin pose={pose} pivotOffsets={pivotOffsets} props={props} showPivots={showPivots} showLabels={showLabels} baseUnitH={H} onAnchorMouseDown={onAnchorMouseDown} draggingBoneKey={draggingBoneKey} isPaused={isPaused} skeletal={false} />
           </g>
           
           {/* The Perpetual Square Trap */}
